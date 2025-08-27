@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Subscription</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="premium-header">
+            <h1><i class="fas fa-crown"></i> Premium Features</h1>
+            <a href="{{ url_for('index') }}" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Analyzer
+            </a>
+        </header>
+
+        <div class="premium-features">
+            <div class="feature-card">
+                <h3>Basic (Free)</h3>
+                <ul>
+                    <li>Basic text statistics</li>
+                    <li>Word frequency analysis</li>
+                    <li>POS tagging</li>
+                    <li>Named entity recognition</li>
+                </ul>
+            </div>
+
+            <div class="feature-card highlighted">
+                <h3>Premium (199,000 UZS/month)</h3>
+                <ul>
+                    <li>Advanced readability scores</li>
+                    <li>Sentiment analysis (TextBlob + VADER)</li>
+                    <li>Topic modeling</li>
+                    <li>Emotion detection</li>
+                    <li>Word clouds</li>
+                    <li>Co-occurrence network analysis</li>
+                    <li>PDF export</li>
+                </ul>
+
+                {% if current_user.is_premium %}
+                    <div class="premium-status">
+                        <p>Your premium subscription is active until {{ current_user.premium_until.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                {% else %}
+                    <button id="subscribeBtn" class="analyze-btn">
+                        <i class="fas fa-crown"></i> Subscribe Now
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const stripe = Stripe('{{ config.STRIPE_PUBLIC_KEY }}');
+    const subscribeBtn = document.getElementById('subscribeBtn');
+
+    if (subscribeBtn) {
+        subscribeBtn.addEventListener('click', async () => {
+            subscribeBtn.disabled = true;
+            subscribeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            try {
+                const response = await fetch('/create-subscription', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const {id} = await response.json();
+                const result = await stripe.redirectToCheckout({ sessionId: id });
+
+                if (result.error) {
+                    showError(result.error.message);
+                }
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                subscribeBtn.disabled = false;
+                subscribeBtn.innerHTML = '<i class="fas fa-crown"></i> Subscribe Now';
+            }
+        });
+    }
+
+    function showError(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.innerHTML = `Error: ${message}`;
+        subscribeBtn.parentNode.insertBefore(errorDiv, subscribeBtn.nextSibling);
+        setTimeout(() => errorDiv.remove(), 5000);
+    }
+    </script>
+
+</body>
+</html>

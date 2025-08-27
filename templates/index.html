@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Text Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-language"></i> Advanced Linguistic Analyzer</h1>
+            <p class="subtitle">Comprehensive text analysis tool with NLP capabilities</p>
+        </header>
+
+        <div class="upload-section">
+            <form method="POST" enctype="multipart/form-data" class="dropzone" id="fileUploadForm">
+                <div class="upload-area">
+                    <i class="fas fa-file-alt fa-3x"></i>
+                    <p>Drag & drop your .txt file here or click to browse</p>
+                    <input type="file" name="file" id="fileInput" accept=".txt" required>
+                    <label for="fileInput" class="browse-btn">Select File</label>
+                </div>
+                <button type="submit" class="analyze-btn">
+                    <i class="fas fa-chart-bar"></i> Analyze Text
+                </button>
+            </form>
+        </div>
+
+        <div class="features">
+            <h2><i class="fas fa-star"></i> Analysis Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>Text Statistics</h3>
+                    <p>Word count, character count, sentence count and more</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-tags"></i>
+                    <h3>POS Tagging</h3>
+                    <p>Part-of-speech analysis with detailed tagging</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <h3>Named Entities</h3>
+                    <p>Identification of people, organizations, locations</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-poll"></i>
+                    <h3>Word Frequency</h3>
+                    <p>Top 20 most frequent words visualization</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-smile"></i>
+                    <h3>Sentiment</h3>
+                    <p>Basic sentiment analysis (positive/negative)</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-project-diagram"></i>
+                    <h3>Dependencies</h3>
+                    <p>Syntactic dependency visualization</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Drag and drop functionality
+        const dropZone = document.querySelector('.upload-area');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            if (fileInput.files.length) {
+                updateFileName(fileInput.files[0].name);
+            }
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        ['dragleave', 'dragend'].forEach(type => {
+            dropZone.addEventListener(type, () => {
+                dropZone.classList.remove('dragover');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileName(e.dataTransfer.files[0].name);
+            }
+        });
+
+        function updateFileName(name) {
+            const uploadText = dropZone.querySelector('p');
+            uploadText.textContent = name;
+        }
+    </script>
+</body>
+</html>

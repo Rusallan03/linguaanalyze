@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Advanced Text Analysis Results</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #4361ee;
+      --secondary: #3a0ca3;
+      --accent: #f72585;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --success: #4cc9f0;
+      --warning: #ffd166;
+      --danger: #ef476f;
+      --gray: #6c757d;
+      --light-gray: #e9ecef;
+      --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f7fb;
+      color: var(--dark);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header */
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .results-header h1 {
+      font-size: 1.8rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .filename {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--gray);
+      font-size: 0.95rem;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: var(--transition);
+    }
+
+    .back-btn:hover {
+      background: var(--secondary);
+      transform: translateY(-2px);
+    }
+
+    /* Grid Layout */
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 25px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      height: fit-content;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    .card h2 {
+      margin-bottom: 18px;
+      font-size: 1.3rem;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--light-gray);
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 15px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 15px 10px;
+      background: var(--light);
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+
+    .stat-item:hover {
+      background: #eef2ff;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--gray);
+      font-weight: 500;
+    }
+
+    /* Tabs */
+    .tab {
+      display: flex;
+      border-bottom: 1px solid var(--light-gray);
+      margin-bottom: 15px;
+    }
+
+    .tab button {
+      background: none;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: var(--gray);
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .tab button:hover {
+      color: var(--primary);
+    }
+
+    .tab button.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .tab button.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 3px 3px 0 0;
+    }
+
+    .tabcontent {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .tabcontent.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Progress bars */
+    .progress-container {
+      margin: 12px 0;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: var(--light-gray);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      border-radius: 5px;
+      transition: width 1s ease-in-out;
+    }
+
+    /* Text sample */
+    .text-sample {
+      background: var(--light);
+      padding: 15px;
+      border-radius: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid transparent;
+    }
+
+    .text-sample:hover {
+      border-color: var(--primary);
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--light-gray);
+    }
+
+    th {
+      background-color: var(--light);
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    /* Plots */
+    .plot-card img {
+      width: 100%;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .plot-card img:hover {
+      transform: scale(1.02);
+    }
+
+    /* Sentence stats */
+    .sentence-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .sentence-stat-item {
+      text-align: center;
+      padding: 12px;
+      background: var(--light);
+      border-radius: 8px;
+    }
+
+    .sentence-stat-value {
+      font-size: 1.3rem;
+      font-weight: bold;
+      display: block;
+    }
+
+    .sentence-stat-label {
+      font-size: 0.8rem;
+      color: var(--gray);
+      margin-top: 5px;
+    }
+
+    /* Distribution bars */
+    .distribution-bars {
+      margin-top: 15px;
+    }
+
+    .distribution-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .distribution-label {
+      min-width: 60px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .distribution-bar-container {
+      flex: 1;
+      height: 20px;
+      background: var(--light-gray);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 0 10px;
+    }
+
+    .distribution-bar {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 10px;
+      transition: width 1s ease-in-out;
+    }
+
+    .distribution-count {
+      min-width: 40px;
+      text-align: right;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* Readability */
+    .readability-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .readability-item {
+      background: var(--light);
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .readability-label {
+      display: block;
+      font-weight: 500;
+      color: var(--gray);
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+
+    .readability-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    /* Emotions */
+    .emotions-chart {
+      display: grid;
+      gap: 12px;
+    }
+
+    .emotion-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .emotion-label {
+      min-width: 100px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .emotion-bar-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .emotion-bar {
+      height: 20px;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width 1s ease-in-out;
+    }
+
+    .emotion-count {
+      min-width: 30px;
+      text-align: right;
+      font-weight: 600;
+    }
+
+    /* Network */
+    #network-graph {
+      width: 100%;
+      height: 400px;
+      border: 1px solid var(--light-gray);
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .network-info h3 {
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .network-info ul {
+      padding-left: 20px;
+    }
+
+    .network-info li {
+      margin-bottom: 5px;
+    }
+
+    /* Keywords */
+    .keywords-cloud {
+      text-align: center;
+      line-height: 2.5;
+      padding: 15px;
+    }
+
+    .keyword {
+      margin: 0 5px;
+      display: inline-block;
+      transition: var(--transition);
+    }
+
+    .keyword:hover {
+      transform: scale(1.2);
+    }
+
+    /* Word Cloud */
+    .wordcloud-container {
+      text-align: center;
+    }
+
+    .wordcloud-img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .results-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .container {
+        padding: 15px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .sentence-stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--dark);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Loading animation for network */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      font-size: 1.2rem;
+      color: var(--gray);
+    }
+
+    .loading::after {
+      content: '';
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(67, 97, 238, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s linear infinite;
+      margin-left: 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header class="results-header">
+    <h1><i class="fas fa-chart-bar"></i> Advanced Text Analysis</h1>
+    <p class="filename"><i class="fas fa-file-alt"></i> {{ filename }}</p>
+    <a href="{{ url_for('index') }}" class="back-btn"><i class="fas fa-arrow-left"></i> Analyze Another Text</a>
+  </header>
+
+  <div class="results-grid">
+
+    <!-- Text Stats -->
+    <section class="card stats-card">
+      <h2><i class="fas fa-chart-pie"></i> Text Statistics</h2>
+      <div class="stats-grid">
+        <div class="stat-item"><div class="stat-value">{{ results.stats.word_count }}</div><div class="stat-label">Words</div></div>
+        <div class="stat-item"><div class="stat-value">{{ results.stats.sentence_count }}</div><div class="stat-label">Sentences</div></div>
+        <div class="stat-item"><div class="stat-value">{{ results.stats.char_count }}</div><div class="stat-label">Characters</div></div>
+        <div class="stat-item"><div class="stat-value">{{ results.stats.avg_word_length }}</div><div class="stat-label">Avg Word Length</div></div>
+        <div class="stat-item"><div class="stat-value">{{ results.stats.unique_words }}</div><div class="stat-label">Unique Words</div></div>
+        <div class="stat-item"><div class="stat-value">{{ results.stats.lexical_diversity }}</div><div class="stat-label">Lexical Diversity</div></div>
+        <div class="stat-item"><div class="stat-value">{{ results.stats.avg_sentence_length }}</div><div class="stat-label">Words/Sentence</div></div>
+        <div class="stat-item"><div class="stat-value">{{ results.stats.max_sentence_length }}</div><div class="stat-label">Max Sentence Length</div></div>
+        <div class="stat-item"><div class="stat-value">{{ results.stats.stopword_ratio }}%</div><div class="stat-label">Stop Words</div></div>
+      </div>
+    </section>
+
+    <!-- Text Sample -->
+    <section class="card text-card">
+      <h2><i class="fas fa-align-left"></i> Text Sample</h2>
+      <div class="text-sample" title="Click to copy">{{ results.text }}</div>
+    </section>
+
+    <!-- Plots -->
+    <section class="card plot-card">
+      <h2><i class="fas fa-tags"></i> Parts of Speech</h2>
+      <img src="data:image/png;base64,{{ results.plots.pos }}" alt="POS Distribution">
+    </section>
+
+    <section class="card plot-card">
+      <h2><i class="fas fa-map-marked-alt"></i> Named Entities</h2>
+      <img src="data:image/png;base64,{{ results.plots.entities }}" alt="Entity Types">
+    </section>
+
+    <section class="card plot-card">
+      <h2><i class="fas fa-poll"></i> Word Frequency</h2>
+      <img src="data:image/png;base64,{{ results.plots.word_freq }}" alt="Word Frequency">
+    </section>
+
+    <section class="card plot-card">
+      <h2><i class="fas fa-smile"></i> Sentiment Analysis</h2>
+      <img src="data:image/png;base64,{{ results.plots.sentiment }}" alt="Sentiment Analysis">
+    </section>
+
+    <!-- Sentence Length Distribution -->
+    <section class="card plot-card">
+      <h2><i class="fas fa-ruler-combined"></i> Sentence Length Distribution</h2>
+      <img src="data:image/png;base64,{{ results.plots.sentence_length }}" alt="Sentence Length Distribution">
+
+      <div class="sentence-stats-grid">
+        <div class="sentence-stat-item">
+          <span class="sentence-stat-value" style="color: #4361ee;">
+            {{ results.extended.sentence_stats.avg_sentence_length }}
+          </span>
+          <span class="sentence-stat-label">Avg Words/Sentence</span>
+        </div>
+        <div class="sentence-stat-item">
+          <span class="sentence-stat-value" style="color: #f72585;">
+            {{ results.extended.sentence_stats.max_sentence_length }}
+          </span>
+          <span class="sentence-stat-label">Longest Sentence</span>
+        </div>
+        <div class="sentence-stat-item">
+          <span class="sentence-stat-value" style="color: #4cc9f0;">
+            {{ results.extended.sentence_stats.min_sentence_length }}
+          </span>
+          <span class="sentence-stat-label">Shortest Sentence</span>
+        </div>
+        <div class="sentence-stat-item">
+          <span class="sentence-stat-value" style="color: #ffd166;">
+            {{ results.extended.sentence_stats.complex_sentences_ratio }}%
+          </span>
+          <span class="sentence-stat-label">Complex Sentences</span>
+        </div>
+      </div>
+
+      <!-- Distribution bars -->
+      <div class="distribution-bars">
+        <h3 style="margin: 15px 0 10px 0; font-size: 1rem;">Detailed Distribution:</h3>
+        {% for range, count in results.extended.sentence_stats.sentence_length_distribution.items() %}
+        <div class="distribution-item">
+          <span class="distribution-label">{{ range }} words</span>
+          <div class="distribution-bar-container">
+            <div class="distribution-bar" style="width: {{ (count / results.stats.sentence_count * 100) if results.stats.sentence_count > 0 else 0 }}%;"></div>
+          </div>
+          <span class="distribution-count">{{ count }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Syntax Dependencies -->
+    <section class="card deps-card">
+      <h2><i class="fas fa-project-diagram"></i> Syntax Dependencies</h2>
+      <div class="dep-svg">{{ results.dep_svg|safe }}</div>
+    </section>
+
+    <!-- Named Entities Table -->
+    <section class="card table-card">
+      <h2><i class="fas fa-table"></i> Named Entities</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Entity</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entity, label in results.entities %}
+            <tr>
+              <td>{{ entity }}</td>
+              <td>{{ label }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Top 20 Words Table -->
+    <section class="card table-card">
+      <h2><i class="fas fa-table"></i> Top 20 Words</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Word</th>
+              <th>Frequency</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for word, freq in results.word_freq %}
+            <tr>
+              <td>{{ word }}</td>
+              <td>{{ freq }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Readability -->
+    <section class="card">
+      <h2><i class="fas fa-book-reader"></i> Readability Analysis</h2>
+      <div class="readability-stats">
+        <div class="readability-item">
+          <span class="readability-label">Flesch Reading Ease:</span>
+          <span class="readability-value">{{ results.extended.readability.flesch }}</span>
+        </div>
+        <div class="readability-item">
+          <span class="readability-label">SMOG Index:</span>
+          <span class="readability-value">{{ results.extended.readability.smog }}</span>
+        </div>
+        <div class="readability-item">
+          <span class="readability-label">Words/Sentence:</span>
+          <span class="readability-value">{{ results.extended.readability.words_per_sentence }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Advanced Sentiment -->
+    <section class="card">
+      <h2><i class="fas fa-smile"></i> Advanced Sentiment Analysis</h2>
+      <div class="sentiment-tabs">
+        <div class="tab">
+          <button class="tablinks active" onclick="openTab(event, 'textblob')">TextBlob</button>
+          <button class="tablinks" onclick="openTab(event, 'vader')">VADER</button>
+        </div>
+        <div id="textblob" class="tabcontent active">
+          <div class="progress-container">
+            <div class="progress-label">
+              <span>Polarity: {{ results.extended.sentiment.textblob.polarity }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" style="width: {{ (results.extended.sentiment.textblob.polarity + 1) * 50 }}%; background: var(--primary);"></div>
+            </div>
+          </div>
+          <div class="progress-container">
+            <div class="progress-label">
+              <span>Subjectivity: {{ results.extended.sentiment.textblob.subjectivity }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" style="width: {{ results.extended.sentiment.textblob.subjectivity * 100 }}%; background: var(--accent);"></div>
+            </div>
+          </div>
+        </div>
+        <div id="vader" class="tabcontent">
+          <div class="progress-container">
+            <div class="progress-label">
+              <span>Positive: {{ results.extended.sentiment.vader.pos|round(3) }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" style="width: {{ results.extended.sentiment.vader.pos * 100 }}%; background: var(--success);"></div>
+            </div>
+          </div>
+          <div class="progress-container">
+            <div class="progress-label">
+              <span>Negative: {{ results.extended.sentiment.vader.neg|round(3) }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" style="width: {{ results.extended.sentiment.vader.neg * 100 }}%; background: var(--danger);"></div>
+            </div>
+          </div>
+          <div class="progress-container">
+            <div class="progress-label">
+              <span>Neutral: {{ results.extended.sentiment.vader.neu|round(3) }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" style="width: {{ results.extended.sentiment.vader.neu * 100 }}%; background: var(--warning);"></div>
+            </div>
+          </div>
+          <div class="progress-container">
+            <div class="progress-label">
+              <span>Compound: {{ results.extended.sentiment.vader.compound|round(3) }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" style="width: {{ (results.extended.sentiment.vader.compound + 1) * 50 }}%; background: var(--primary);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Topics -->
+    <section class="card">
+      <h2><i class="fas fa-project-diagram"></i> Topic Modeling</h2>
+      <div class="topics-list">
+        {% for topic in results.extended.topics %}
+        <div class="topic">
+          <h3>Topic {{ loop.index }}</h3>
+          <p>{{ topic[1] }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Keywords -->
+<section class="card">
+    <h2><i class="fas fa-key"></i> Keywords (TF-IDF)</h2>
+    <div class="keywords-cloud" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 20px; border-radius: 8px;">
+        {% for word, score in results.extended.keywords %}
+        <span class="keyword" style="font-size: {{ 12 + score * 20 }}px; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">{{ word }}</span>
+        {% endfor %}
+    </div>
+</section>
+
+    <!-- Word Cloud -->
+    <section class="card">
+      <h2><i class="fas fa-cloud"></i> Word Cloud</h2>
+      <div class="wordcloud-container">
+        <img src="data:image/png;base64,{{ results.extended.wordcloud }}" alt="Word Cloud" class="wordcloud-img">
+      </div>
+    </section>
+
+    <!-- Emotions -->
+    <section class="card">
+      <h2><i class="fas fa-heart"></i> Emotion Analysis</h2>
+      {% if results.extended.emotions %}
+        <div class="emotions-chart">
+          {% for emotion, count in results.extended.emotions.items() %}
+            <div class="emotion-item">
+              <span class="emotion-label">{{ emotion|title }}</span>
+              <div class="emotion-bar-container">
+                <div class="emotion-bar" style="width: {{ count * 10 }}px; background: var(--accent);"></div>
+                <span class="emotion-count">{{ count }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="no-emotions">No strong emotions detected in the text.</p>
+      {% endif %}
+    </section>
+
+    <!-- Network -->
+    <section class="card">
+      <h2><i class="fas fa-network-wired"></i> Co-occurrence Network</h2>
+      <div id="network-graph">
+        <div class="loading">Loading network visualization</div>
+      </div>
+      <div class="network-info">
+        <h3>Central Words:</h3>
+        <ul>
+          {% for word, degree in results.extended.cooccurrence.central_words %}
+          <li>{{ word }} ({{ degree }} connections)</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">Text copied to clipboard!</div>
+
+<!-- Scripts -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.js"></script>
+
+<script>
+// Улучшенная функция вкладок
+function openTab(evt, tabName) {
+    const tabcontent = document.getElementsByClassName("tabcontent");
+    for (let i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+        tabcontent[i].classList.remove('active');
+    }
+
+    const tablinks = document.getElementsByClassName("tablinks");
+    for (let i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    document.getElementById(tabName).style.display = "block";
+    document.getElementById(tabName).classList.add('active');
+    evt.currentTarget.className += " active";
+
+    // Сохраняем выбранную вкладку в sessionStorage
+    sessionStorage.setItem('lastTab', tabName);
+
+    // Анимируем прогресс-бары при переключении вкладки
+    setTimeout(animateProgressBars, 50);
+}
+
+// Восстановление последней вкладки при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    const lastTab = sessionStorage.getItem('lastTab');
+    if (lastTab) {
+        const tabButton = document.querySelector(`button[onclick*="${lastTab}"]`);
+        if (tabButton) {
+            tabButton.click();
+        }
+    }
+
+    // Анимация прогресс-баров
+    setTimeout(animateProgressBars, 300);
+
+    // Инициализация сети
+    initNetwork();
+
+    // Анимация распределительных полос
+    animateDistributionBars();
+});
+
+// Анимация прогресс-баров
+function animateProgressBars() {
+    const progressBars = document.querySelectorAll('.progress');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 100);
+    });
+}
+
+// Анимация полос распределения
+function animateDistributionBars() {
+    const distributionBars = document.querySelectorAll('.distribution-bar');
+    distributionBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 200);
+    });
+}
+
+// Показ уведомления
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// Копирование текста образца
+document.querySelector('.text-sample').addEventListener('click', function() {
+    const text = this.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Text copied to clipboard!');
+    }).catch(err => {
+        showToast('Failed to copy text');
+        console.error('Failed to copy text: ', err);
+    });
+});
+
+// Улучшенная инициализация сети
+function initNetwork() {
+    const networkData = {
+        nodes: {{ results.extended.cooccurrence.nodes | tojson }},
+        edges: {{ results.extended.cooccurrence.edges | tojson }}
+    };
+
+    const container = document.getElementById("network-graph");
+
+    if (networkData.nodes && networkData.nodes.length > 0) {
+        // Удаляем элемент загрузки
+        container.innerHTML = '';
+
+        const data = {
+            nodes: new vis.DataSet(
+                networkData.nodes.map(word => ({
+                    id: word,
+                    label: word,
+                    size: 15 + Math.random() * 10,
+                    color: {
+                        background: '#4361ee',
+                        border: '#3a0ca3',
+                        highlight: {
+                            background: '#4895ef',
+                            border: '#3a0ca3'
+                        }
+                    }
+                }))
+            ),
+            edges: new vis.DataSet(
+                networkData.edges.map(([source, target, weight]) => ({
+                    from: source,
+                    to: target,
+                    width: Math.min(weight * 0.8, 5),
+                    label: String(weight),
+                    color: {
+                        color: 'rgba(67, 97, 238, 0.6)',
+                        highlight: 'rgba(72, 149, 239, 0.8)'
+                    }
+                }))
+            )
+        };
+
+        const options = {
+            nodes: {
+                shape: "dot",
+                font: {
+                    size: 14,
+                    face: 'Segoe UI',
+                    color: '#333'
+                },
+                shadow: true
+            },
+            edges: {
+                smooth: {
+                    type: 'continuous',
+                    roundness: 0.5
+                },
+                shadow: true
+            },
+            physics: {
+                stabilization: {
+                    iterations: 100
+                },
+                barnesHut: {
+                    gravitationalConstant: -20000,
+                    springLength: 95,
+                    springConstant: 0.04
+                }
+            },
+            interaction: {
+                tooltipDelay: 200,
+                hover: true
+            }
+        };
+
+        new vis.Network(container, data, options);
+    } else {
+        container.innerHTML =
+            '<div style="text-align:center;padding:50px;color:#777;">Not enough data to build a network graph</div>';
+    }
+}
+
+// Модальное окно для изображений
+document.querySelectorAll('.plot-card img').forEach(img => {
+    img.style.cursor = 'pointer';
+    img.addEventListener('click', function() {
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:1000;display:flex;justify-content:center;align-items:center;';
+        modal.innerHTML = `
+            <div style="position:relative;">
+                <img src="${this.src}" style="max-width:90vw;max-height:80vh;">
+                <button onclick="this.parentElement.parentElement.remove()"
+                        style="position:absolute;top:10px;right:10px;background:#f72585;color:white;border:none;padding:10px;border-radius:5px;cursor:pointer;">
+                    ✕
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Закрытие по клику вне изображения
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.remove();
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>
