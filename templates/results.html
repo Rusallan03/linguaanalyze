@@ -795,14 +795,32 @@
     </section>
 
     <!-- Keywords -->
-<section class="card">
-    <h2><i class="fas fa-key"></i> Keywords (TF-IDF)</h2>
-    <div class="keywords-cloud" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 20px; border-radius: 8px;">
-        {% for word, score in results.extended.keywords %}
-        <span class="keyword" style="font-size: {{ 12 + score * 20 }}px; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">{{ word }}</span>
-        {% endfor %}
-    </div>
-</section>
+    <section class="card">
+      <h2><i class="fas fa-key"></i> Keywords (TF-IDF)</h2>
+
+      <div class="keywords-cloud" id="keywordsCloud" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 25px; border-radius: 10px; text-align: center; line-height: 2.2; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(67, 97, 238, 0.2);">
+          <!-- Ключевые слова будут добавлены через JavaScript -->
+      </div>
+
+      <div class="keyword-info" id="keywordInfo" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px; display: none; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); border-left: 4px solid #4361ee;">
+          <h3 style="color: #4361ee; margin-top: 0; display: flex; align-items: center; gap: 10px;"><i class="fas fa-info-circle"></i> Keyword: <span id="currentKeyword"></span></h3>
+          <div class="info-content" style="display: flex; gap: 20px; flex-wrap: wrap;">
+              <div class="info-box" style="flex: 1; min-width: 200px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);">
+                  <h4 style="color: #3a0ca3; margin-top: 0; margin-bottom: 10px; font-size: 16px;">Details</h4>
+                  <p>TF-IDF Score: <span id="tfidfScore">0.123</span></p>
+                  <p>Frequency: <span id="frequency">15</span> occurrences</p>
+              </div>
+              <div class="info-box" style="flex: 1; min-width: 200px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);">
+                  <h4 style="color: #3a0ca3; margin-top: 0; margin-bottom: 10px; font-size: 16px;">Context</h4>
+                  <p>This keyword appears frequently in the text.</p>
+              </div>
+          </div>
+      </div>
+
+      <div class="instructions" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #f72585;">
+          <p style="margin: 0; color: #6c757d; display: flex; align-items: center; gap: 10px;"><i class="fas fa-mouse-pointer"></i> Hover over any keyword to see detailed information</p>
+      </div>
+    </section>
 
     <!-- Word Cloud -->
     <section class="card">
@@ -900,6 +918,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Анимация распределительных полос
     animateDistributionBars();
+
+    // Инициализация облака ключевых слов
+    initKeywordsCloud();
 });
 
 // Анимация прогресс-баров
@@ -1056,6 +1077,116 @@ document.querySelectorAll('.plot-card img').forEach(img => {
         });
     });
 });
+
+// Keywords hover functionality
+function initKeywordsCloud() {
+    const keywordsCloud = document.getElementById('keywordsCloud');
+    const keywordInfo = document.getElementById('keywordInfo');
+    const currentKeyword = document.getElementById('currentKeyword');
+    const tfidfScore = document.getElementById('tfidfScore');
+    const frequency = document.getElementById('frequency');
+
+    // Получаем ключевые слова из шаблона
+    const keywords = [
+        {% for word, score in results.extended.keywords %}
+        {text: "{{ word }}", score: {{ score }}, frequency: {{ results.extended.lexical_richness.most_common_words | selectattr('0', 'equalto', word) | map(attribute='1') | first | default(1) }} },
+        {% endfor %}
+    ];
+
+    // Генерируем ключевые слова в облаке
+    keywords.forEach(keyword => {
+        const span = document.createElement('span');
+        span.className = 'keyword';
+
+        // Определяем размер на основе score
+        const size = 12 + (keyword.score * 20);
+        span.style.cssText = `
+            display: inline-block;
+            margin: 5px 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            font-size: ${size}px;
+            background: #4361ee;
+        `;
+
+        span.textContent = keyword.text;
+
+        // Добавляем обработчики событий
+        span.addEventListener('mouseenter', () => {
+            showKeywordInfo(keyword);
+            span.style.transform = 'translateY(-3px) scale(1.1)';
+            span.style.boxShadow = '0 6px 15px rgba(0, 0, 0, 0.15)';
+            span.style.zIndex = '10';
+        });
+
+        span.addEventListener('mouseleave', () => {
+            hideKeywordInfo();
+            span.style.transform = '';
+            span.style.boxShadow = '';
+            span.style.zIndex = '';
+        });
+
+        keywordsCloud.appendChild(span);
+    });
+
+    function showKeywordInfo(keyword) {
+        currentKeyword.textContent = keyword.text;
+        tfidfScore.textContent = keyword.score.toFixed(3);
+        frequency.textContent = keyword.frequency;
+
+        keywordInfo.style.display = 'block';
+        keywordInfo.style.animation = 'fadeIn 0.3s ease';
+    }
+
+    function hideKeywordInfo() {
+        keywordInfo.style.display = 'none';
+    }
+
+    // Добавляем анимацию в стили
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .keyword:hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s ease;
+            left: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .keywords-cloud {
+                padding: 15px !important;
+            }
+
+            .keyword {
+                margin: 4px 6px !important;
+                padding: 5px 10px !important;
+                font-size: 14px !important;
+            }
+
+            .info-content {
+                flex-direction: column !important;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
 </script>
 </body>
 </html>
